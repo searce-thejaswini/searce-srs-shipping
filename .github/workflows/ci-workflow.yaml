@@ -62,7 +62,6 @@ jobs:
           gcloud auth configure-docker us-central1-docker.pkg.dev
       - name: Run Wiremock server
         run: |
-          cd shipping
           docker run -d -p 8080:8080 -v $PWD/src/test/resources:/home/wiremock --name wiremock wiremock/wiremock:2.33.1
           docker container inspect wiremock
           echo `docker container port wiremock`
@@ -75,18 +74,18 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
-          files: "shipping/target/surefire-reports/junitreports/*.xml"
+          files: "target/surefire-reports/junitreports/*.xml"
        
       - name: Build-and-push-to-GAR
         run: |
           echo `pwd`
-          export TAG=`cat shipping/VERSION.txt`
+          export TAG=`cat VERSION.txt`
           echo $TAG
-          echo "$GAR_INFO"/"$SHIPPING_APP_NAME":"$TAG"
-          # docker build -t "$GAR_INFO"/"$SHIPPING_APP_NAME":"$TAG" shipping/
+          echo "$GAR_INFO"/"$APP_NAME":"$TAG"
+          docker build -t "$GAR_INFO"/"$APP_NAME":"$TAG" .
           gcloud info
-          # docker push "$GAR_INFO"/"$SHIPPING_APP_NAME":"$TAG"
-          gcloud builds submit --tag "$GAR_INFO"/"$SHIPPING_APP_NAME":"$TAG" shipping/
+          docker push "$GAR_INFO"/"$APP_NAME":"$TAG"
+          #gcloud builds submit --tag "$GAR_INFO"/"$APP_NAME":"$TAG" .
   # deploy-to-gcp-dev:
   #   name: Deploy to GCP Dev Env
   #   runs-on: ubuntu-latest
