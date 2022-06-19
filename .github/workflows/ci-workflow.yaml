@@ -13,7 +13,7 @@ on:
       - 'K8s/**'
 
 env:
-  GAR_INFO: us-central1-docker.pkg.dev/triangulum-ctv-0608/telus-robot-shop
+  GAR_INFO: us-central1-docker.pkg.dev/coe-srs-2022/coe-srs-gar-repo
   APP_NAME: rs-shipping
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   SONAR_PROJECT_KEY: 'coe-srs-shipping'
