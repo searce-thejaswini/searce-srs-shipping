@@ -16,8 +16,6 @@
 
 	<properties>
 		<java.version>1.8</java.version>
-		<maven.compiler.source>17</maven.compiler.source>
- 		<maven.compiler.target>17</maven.compiler.target>
 		<sonar.host.url>http://34.125.133.74:9000</sonar.host.url>
 		<sonar.coverage.jacoco.xmlReportPaths>
     			target/site/jacoco-aggregate/jacoco.xml
