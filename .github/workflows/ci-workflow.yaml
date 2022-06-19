@@ -183,56 +183,56 @@ jobs:
   #         echo "date_var=$date_var" >> $GITHUB_ENV
   #         gcloud beta run jobs create k6-load-test-`date +%m%d%y-%H%M` --image "$GAR_K6_INFO"/rs-k6-image:"$K6_TAG" --region europe-west9 --execute-now
 
-  run-taurus-tests:
-    name: Taurus Load Test
-    needs: deploy-to-gcp-dev
-    runs-on: ubuntu-latest
+  # run-taurus-tests:
+  #   name: Taurus Load Test
+  #   needs: deploy-to-gcp-dev
+  #   runs-on: ubuntu-latest
     
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
                         
-      - name: Setup GCP Service Account
-        uses: "google-github-actions/auth@v0"
-        with:
-          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS_P }}"
+  #     - name: Setup GCP Service Account
+  #       uses: "google-github-actions/auth@v0"
+  #       with:
+  #         credentials_json: "${{ secrets.GOOGLE_CREDENTIALS_P }}"
       
-      - name: Set up Cloud SDK
-        uses: 'google-github-actions/setup-gcloud@v0'
-        with:
-          install_components: 'beta'
+  #     - name: Set up Cloud SDK
+  #       uses: 'google-github-actions/setup-gcloud@v0'
+  #       with:
+  #         install_components: 'beta'
 
-      - name: Setup Docker
-        run: |
-          gcloud auth configure-docker us-central1-docker.pkg.dev
+  #     - name: Setup Docker
+  #       run: |
+  #         gcloud auth configure-docker us-central1-docker.pkg.dev
 
-      - name: set Taurus image TAG
-        run: |
-          K6_TAG=`cat qa-tests/VERSION.txt`
-          echo "K6_TAG=$K6_TAG" >> $GITHUB_ENV
+  #     - name: set Taurus image TAG
+  #       run: |
+  #         K6_TAG=`cat qa-tests/VERSION.txt`
+  #         echo "K6_TAG=$K6_TAG" >> $GITHUB_ENV
 
-      - name: Build Taurus Image
-        run: |
-          echo $K6_TAG
-          echo "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG"
-          docker build -t "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG" qa-tests/
-          gcloud info
-          docker push "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG"
-          gcloud config set builds/use_kaniko True
-          gcloud builds submit --no-cache --tag "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG" qa-tests/
+  #     - name: Build Taurus Image
+  #       run: |
+  #         echo $K6_TAG
+  #         echo "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG"
+  #         docker build -t "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG" qa-tests/
+  #         gcloud info
+  #         docker push "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG"
+  #         gcloud config set builds/use_kaniko True
+  #         gcloud builds submit --no-cache --tag "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG" qa-tests/
 
-      - name: Run Taurus Scripts
-        run: |
-          date_var=`date +%m%d%y-%H%M`
-          echo "date_var=$date_var" >> $GITHUB_ENV
-          current_path=`pwd`
-          echo "Current dir is $current_path"
-          echo "current time is $date_var"
-          gcloud container clusters get-credentials "triangulum-cluster" --region=us-central1-a
-          kubectl delete job taurus -n robot-shop-dev
-          kubectl delete configmap current-date  -n robot-shop-dev        
-          kubectl create configmap current-date --from-literal=DATE_NOW=$date_var -n robot-shop-dev
-          kubectl apply -f K8s/taurus-deployment.yaml -n robot-shop-dev 
+  #     - name: Run Taurus Scripts
+  #       run: |
+  #         date_var=`date +%m%d%y-%H%M`
+  #         echo "date_var=$date_var" >> $GITHUB_ENV
+  #         current_path=`pwd`
+  #         echo "Current dir is $current_path"
+  #         echo "current time is $date_var"
+  #         gcloud container clusters get-credentials "triangulum-cluster" --region=us-central1-a
+  #         kubectl delete job taurus -n robot-shop-dev
+  #         kubectl delete configmap current-date  -n robot-shop-dev        
+  #         kubectl create configmap current-date --from-literal=DATE_NOW=$date_var -n robot-shop-dev
+  #         kubectl apply -f K8s/taurus-deployment.yaml -n robot-shop-dev 
           
 # Reference Commands
 #gcloud beta run jobs create taurus-load-test-`date +%m%d%y-%H%M` --image "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG" --region europe-west9 --execute-now
