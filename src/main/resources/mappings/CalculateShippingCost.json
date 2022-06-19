@@ -1,0 +1,10 @@
+{
+    "request": {
+        "method": "GET",
+        "url": "/api/shipping/calc/4374516"
+    },
+    "response": {
+        "status": 200,
+        "bodyFileName": "../__files/CalculateShippingCostRes.json"
+    }
+}

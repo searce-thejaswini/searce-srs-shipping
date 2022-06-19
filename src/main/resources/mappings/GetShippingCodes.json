@@ -1,0 +1,10 @@
+{
+    "request": {
+        "method": "GET",
+        "url": "/api/shipping/codes"
+    },
+    "response": {
+        "status": 200,
+        "bodyFileName": "../__files/GetShippingCodesRes.json"
+    }
+}
