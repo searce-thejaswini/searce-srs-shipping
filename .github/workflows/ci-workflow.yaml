@@ -4,15 +4,13 @@ on:
     branches-ignore:
       - dev-branch-01
     paths-ignore:
-      - 'DCOS/**'
       - 'K8s/**'
   pull_request:
        
   workflow_dispatch:
     paths-ignore:
-      - 'DCOS/**'
       - 'K8s/**'
-#Enivironment variable
+
 env:
   GAR_INFO: us-central1-docker.pkg.dev/srs-cart-demo/srs-ship-demo
   APP_NAME: rs-shipping
@@ -25,19 +23,8 @@ jobs:
     name: Building SHIPPING IMAGE
     runs-on: ubuntu-latest
     permissions:
-     actions: write
-     checks: write
-     contents: write
-     deployments: write
-     id-token: write
-     issues: write
-     discussions: write
-     packages: write
-     pages: write
      pull-requests: write
-     repository-projects: write
-     security-events: write
-     statuses: write
+     
       
 
     steps:
@@ -71,8 +58,8 @@ jobs:
           credentials_json: "${{ secrets.GOOGLE_CREDENTIALS_P }}"
           # Below is a method of using Managed Identity Pools in GCP"
           #workload_identity_provider: "${{ secrets.workload_identity_provider }}"
-          #service_account: 'triangulum-ctv-sa@triangulum-ctv-349103.iam.gserviceaccount.com'
-          #project_id: triangulum-ctv
+          #service_account: 
+          #project_id: 
           #token_format: 'access_token'
       
       - name: Set up Cloud SDK
@@ -91,11 +78,7 @@ jobs:
           org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=$SONAR_PROJECT_KEY \
             
-      - name: Publish Wiremock Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        if: always()
-        with:
-          files: "target/surefire-reports/junitreports/*.xml"
+  
        
       - name: Build-and-push-to-GAR
         run: |
@@ -108,164 +91,4 @@ jobs:
           docker push "$GAR_INFO"/"$APP_NAME":"$TAG"
           #gcloud builds submit --tag "$GAR_INFO"/"$APP_NAME":"$TAG" .
   
-  deploy-to-gcp-dev:
-    name: Deploy to GCP Dev Env
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-                        
-      - name: Setup GCP Service Account
-        uses: "google-github-actions/auth@v0"
-        with:
-          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS_P }}"
-      
-      - name: Set up Cloud SDK
-        uses: 'google-github-actions/setup-gcloud@v0'
-
-      # Berfore Running Google Cloud Deploy, Ensure the Setup is done
-      # gcloud deploy apply --file clouddeploy.yaml --region=us-central1 --project=coe-srs-2022
-      - name: Call Google Cloud Deploy
-        run: |
-          cd K8s
-          date_var=`date +%m%d%y-%H%M`
-          echo "date_var=$date_var" >> $GITHUB_ENV
-          gcloud deploy releases create rel-$date_var --delivery-pipeline=robot-shop-gcp --region=us-central1
-      
-      - name: verify if the rollout is success
-        run: |
-          gcloud deploy rollouts describe rel-${{ env.date_var }}-to-dev-0001 --release=rel-${{ env.date_var }} --delivery-pipeline=robot-shop-gcp --region=us-central1
-          sleep 60
-          counter=0
-          while [ $counter -lt 20 ]
-          do
-          export some_val=`gcloud deploy rollouts describe rel-${{ env.date_var }}-to-dev-0001 --release=rel-${{ env.date_var }} --delivery-pipeline=robot-shop-gcp --region=us-central1 | grep state: | cut -f2 -d: | cut -d' ' -f2`
-          if [ "$some_val" == "IN_PROGRESS" ]
-          then
-            echo "Deployment in Progress Time is: `date`"
-              sleep 30
-              continue
-          elif [ "$some_val" == "SUCCEEDED" ]
-          then
-              [echo "Deployment is Succeeded Time is: `date`	"]
-              exit 0
-          else
-            echo "Deployment Failed Time is: `date`"
-              exit 1
-          fi
-          counter=$(( $counter + 1))
-          done
-
-  # run-k6-tests:
-  #   name: K6 Load Test
-  #   needs: 
-  #     - deploy-to-gcp-dev
-      
-  #   runs-on: ubuntu-latest
-    
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-                        
-  #     - name: Setup GCP Service Account
-  #       uses: "google-github-actions/auth@v0"
-  #       with:
-  #         credentials_json: "${{ secrets.GOOGLE_CREDENTIALS_P }}"
-      
-  #     - name: Set up Cloud SDK
-  #       uses: 'google-github-actions/setup-gcloud@v0'
-  #       with:
-  #         install_components: 'beta'
-
-  #     - name: Setup Docker
-  #       run: |
-  #         gcloud auth configure-docker us-central1-docker.pkg.dev
-
-  #     - name: set K6 image TAG
-  #       run: |
-  #         K6_TAG=`cat qa-tests/VERSION.txt`
-  #         echo "K6_TAG=$K6_TAG" >> $GITHUB_ENV
-  #         date_var=`date +%m%d%y-%H%M`
-  #         echo "date_var=$date_var" >> $GITHUB_ENV
-  #         job_k6_name=k6-load-test-$K6_TAG-$date_var
-  #         echo "job_k6_name=$job_k6_name" >> GITHUB_ENV
-
-  #     - name: Build-K6-push-to-GAR
-  #       run: |
-  #         echo $K6_TAG
-  #         echo "$GAR_K6_INFO"/rs-k6-image:"$K6_TAG"
-  #         docker build -t "$GAR_K6_INFO"/rs-k6-image:"$K6_TAG" -f qa-tests/Dockerfile-k6 qa-tests/
-  #         gcloud info
-  #         docker push "$GAR_K6_INFO"/rs-k6-image:"$K6_TAG"
-
-  #     - name: Deploy Cloud Run Jobs
-  #       run: |
-  #         date_var=`date +%m%d%y-%H%M`
-  #         echo "date_var=$date_var" >> $GITHUB_ENV
-  #         gcloud beta run jobs create k6-load-test-`date +%m%d%y-%H%M` --image "$GAR_K6_INFO"/rs-k6-image:"$K6_TAG" --region europe-west9 --execute-now
-
-  # run-taurus-tests:
-  #   name: Taurus Load Test
-  #   needs: deploy-to-gcp-dev
-  #   runs-on: ubuntu-latest
-    
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-                        
-  #     - name: Setup GCP Service Account
-  #       uses: "google-github-actions/auth@v0"
-  #       with:
-  #         credentials_json: "${{ secrets.GOOGLE_CREDENTIALS_P }}"
-      
-  #     - name: Set up Cloud SDK
-  #       uses: 'google-github-actions/setup-gcloud@v0'
-  #       with:
-  #         install_components: 'beta'
-
-  #     - name: Setup Docker
-  #       run: |
-  #         gcloud auth configure-docker us-central1-docker.pkg.dev
-
-  #     - name: set Taurus image TAG
-  #       run: |
-  #         K6_TAG=`cat qa-tests/VERSION.txt`
-  #         echo "K6_TAG=$K6_TAG" >> $GITHUB_ENV
-
-  #     - name: Build Taurus Image
-  #       run: |
-  #         echo $K6_TAG
-  #         echo "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG"
-  #         docker build -t "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG" qa-tests/
-  #         gcloud info
-  #         docker push "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG"
-  #         gcloud config set builds/use_kaniko True
-  #         gcloud builds submit --no-cache --tag "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG" qa-tests/
-
-  #     - name: Run Taurus Scripts
-  #       run: |
-  #         date_var=`date +%m%d%y-%H%M`
-  #         echo "date_var=$date_var" >> $GITHUB_ENV
-  #         current_path=`pwd`
-  #         echo "Current dir is $current_path"
-  #         echo "current time is $date_var"
-  #         gcloud container clusters get-credentials "triangulum-cluster" --region=us-central1-a
-  #         kubectl delete job taurus -n robot-shop-dev
-  #         kubectl delete configmap current-date  -n robot-shop-dev        
-  #         kubectl create configmap current-date --from-literal=DATE_NOW=$date_var -n robot-shop-dev
-  #         kubectl apply -f K8s/taurus-deployment.yaml -n robot-shop-dev 
-          
-# Reference Commands
-#gcloud beta run jobs create taurus-load-test-`date +%m%d%y-%H%M` --image "$GAR_K6_INFO"/rs-taurus-image:"$K6_TAG" --region europe-west9 --execute-now
-# Update Version numbers of the microservices in robot-shop
-# find . -name VERSION.txt -exec bash -c "printf %s '1.3.0' > {}" \;
-# Delete Cloud Deploy Delivery Pipelines
-# gcloud deploy delete --file=clouddeploy.yaml --region=us-central1 --force
-# Apply/Create a new Delivery Pipeline
-# gcloud deploy apply --file=clouddeploy.yaml --region=us-central1
-# Deploying to Target Dev using GCP
-# gcloud deploy releases create release-0514-0813 --delivery-pipeline=robot-shop-gcp --region=us-central1
-# Get the status of Rollout
-# gcloud deploy rollouts describe release-0514-0813-to-dev-0001 --release=release-0514-0813 --delivery-pipeline=robot-shop-gcp --region=us-central1
+  
