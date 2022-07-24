@@ -12,7 +12,7 @@ on:
     paths-ignore:
       - 'DCOS/**'
       - 'K8s/**'
-
+#Enivironment variable
 env:
   GAR_INFO: us-central1-docker.pkg.dev/srs-cart-demo/srs-ship-demo
   APP_NAME: rs-shipping
