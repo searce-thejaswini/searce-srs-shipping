@@ -81,7 +81,7 @@ jobs:
   
        
       - name: Build-and-push-to-GAR
-        run: |
+        run: 
           echo `pwd`
           export TAG=`cat VERSION.txt`
           echo $TAG
