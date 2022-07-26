@@ -8,8 +8,7 @@ on:
   pull_request:
        
   workflow_dispatch:
-    paths-ignore:
-      - 'K8s/**'
+    
 
 env:
   GAR_INFO: us-central1-docker.pkg.dev/srs-cart-demo/srs-ship-demo
@@ -22,10 +21,7 @@ jobs:
   build-shipping:
     name: Building SHIPPING IMAGE
     runs-on: ubuntu-latest
-    permissions:
-     pull-requests: write
-     
-      
+
 
     steps:
       - name: Checkout
@@ -72,8 +68,6 @@ jobs:
       - name: Run Wiremock server
         run: |
           docker run -d -p 8080:8080 -v $PWD/src/test/resources:/home/wiremock --name wiremock wiremock/wiremock:2.33.1
-          docker container inspect wiremock
-          echo `docker container port wiremock`
           mvn test \
           org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=$SONAR_PROJECT_KEY \
@@ -82,9 +76,7 @@ jobs:
        
       - name: Build-and-push-to-GAR
         run: |
-          echo `pwd`
           export TAG=`cat VERSION.txt`
-          echo $TAG
           echo "$GAR_INFO"/"$APP_NAME":"$TAG"
           docker build -t "$GAR_INFO"/"$APP_NAME":"$TAG" .
           gcloud info
