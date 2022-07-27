@@ -65,9 +65,12 @@ jobs:
       - name: Setup Docker
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev
+          
       - name: Run Wiremock server
         run: |
           docker run -d -p 8080:8080 -v $PWD/src/test/resources:/home/wiremock --name wiremock wiremock/wiremock:2.33.1
+          docker container inspect wiremock
+          echo `docker container port wiremock`
           mvn test \
           org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=$SONAR_PROJECT_KEY \
