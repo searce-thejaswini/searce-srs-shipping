@@ -1,0 +1,92 @@
+name: CI Workflow
+on:
+  push:
+    branches-ignore:
+      - dev-branch-01
+    paths-ignore:
+      - 'K8s/**'
+  pull_request:
+       
+  workflow_dispatch:
+    paths-ignore:
+      - 'K8s/**'
+
+env:
+  GAR_INFO: us-central1-docker.pkg.dev/srs-cart-demo/new-demo
+  APP_NAME: rs-shipping
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_NEW }}
+  SONAR_PROJECT_KEY: 'coe-srs-shipping'
+ 
+  
+jobs:  
+  build-shipping:
+    name: Building SHIPPING IMAGE
+    runs-on: ubuntu-latest
+    permissions:
+     pull-requests: write
+     
+      
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+          cache: Maven
+     
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      
+      - name: Cache Maven packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+                       
+      - name: Setup GCP Service Account
+        uses: "google-github-actions/auth@v0"
+        with:
+          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS_P }}"
+          # Below is a method of using Managed Identity Pools in GCP"
+          #workload_identity_provider: "${{ secrets.workload_identity_provider }}"
+          #service_account: 
+          #project_id: 
+          #token_format: 'access_token'
+      
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v0'
+      
+      # Configure docker to use the gcloud command-line tool as a credential helper
+      - name: Setup Docker
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+      - name: Run Wiremock server
+        run: |
+          docker run -d -p 8080:8080 -v $PWD/src/test/resources:/home/wiremock --name wiremock wiremock/wiremock:2.33.1
+          docker container inspect wiremock
+          echo `docker container port wiremock`
+          mvn test \
+          org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+            
+  
+       
+      - name: Build-and-push-to-GAR
+        run: |
+          echo `pwd`
+          export TAG=`cat VERSION.txt`
+          echo $TAG
+          echo "$GAR_INFO"/"$APP_NAME":"$TAG"
+          docker build -t "$GAR_INFO"/"$APP_NAME":"$TAG" .
+          gcloud info
+          docker push "$GAR_INFO"/"$APP_NAME":"$TAG"
+          #gcloud builds submit --tag "$GAR_INFO"/"$APP_NAME":"$TAG" .
