@@ -84,6 +84,6 @@ jobs:
           docker build -t "$GAR_INFO"/"$APP_NAME":"$TAG" .
           gcloud info
           docker push "$GAR_INFO"/"$APP_NAME":"$TAG"
-          
+          #
   
   
