@@ -86,4 +86,4 @@ jobs:
           docker push "$GAR_INFO"/"$APP_NAME":"$TAG"
           #
   
-#  
+
