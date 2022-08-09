@@ -4,14 +4,17 @@ on:
     branches-ignore:
       - dev-branch-01
     paths-ignore:
+      - 'DCOS/**'
       - 'K8s/**'
   pull_request:
        
   workflow_dispatch:
-    
+    paths-ignore:
+      - 'DCOS/**'
+      - 'K8s/**'
 
 env:
-  GAR_INFO: us-central1-docker.pkg.dev/srs-cart-demo/srs-ship-demo
+  GAR_INFO: us-central1-docker.pkg.dev/coe-srs-2022/coe-srs-gar-repo
   APP_NAME: rs-shipping
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_NEW }}
   SONAR_PROJECT_KEY: 'coe-srs-shipping'
@@ -21,7 +24,21 @@ jobs:
   build-shipping:
     name: Building SHIPPING IMAGE
     runs-on: ubuntu-latest
-
+    permissions:
+     actions: write
+     checks: write
+     contents: write
+     deployments: write
+     id-token: write
+     issues: write
+     discussions: write
+     packages: write
+     pages: write
+     pull-requests: write
+     repository-projects: write
+     security-events: write
+     statuses: write
+      
 
     steps:
       - name: Checkout
@@ -54,8 +71,8 @@ jobs:
           credentials_json: "${{ secrets.GOOGLE_CREDENTIALS_P }}"
           # Below is a method of using Managed Identity Pools in GCP"
           #workload_identity_provider: "${{ secrets.workload_identity_provider }}"
-          #service_account: 
-          #project_id: 
+          #service_account: 'triangulum-ctv-sa@triangulum-ctv-349103.iam.gserviceaccount.com'
+          #project_id: triangulum-ctv
           #token_format: 'access_token'
       
       - name: Set up Cloud SDK
@@ -65,7 +82,6 @@ jobs:
       - name: Setup Docker
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev
-          
       - name: Run Wiremock server
         run: |
           docker run -d -p 8080:8080 -v $PWD/src/test/resources:/home/wiremock --name wiremock wiremock/wiremock:2.33.1
@@ -75,14 +91,69 @@ jobs:
           org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=$SONAR_PROJECT_KEY \
             
-  
+      - name: Publish Wiremock Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: "target/surefire-reports/junitreports/*.xml"
        
       - name: Build-and-push-to-GAR
         run: |
+          echo `pwd`
           export TAG=`cat VERSION.txt`
+          echo $TAG
           echo "$GAR_INFO"/"$APP_NAME":"$TAG"
           docker build -t "$GAR_INFO"/"$APP_NAME":"$TAG" .
           gcloud info
           docker push "$GAR_INFO"/"$APP_NAME":"$TAG"
-          #
+          #gcloud builds submit --tag "$GAR_INFO"/"$APP_NAME":"$TAG" .
   
+  deploy-to-gcp-dev:
+    name: Deploy to GCP Dev Env
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+                        
+      - name: Setup GCP Service Account
+        uses: "google-github-actions/auth@v0"
+        with:
+          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS_P }}"
+      
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v0'
+
+      # Berfore Running Google Cloud Deploy, Ensure the Setup is done
+      # gcloud deploy apply --file clouddeploy.yaml --region=us-central1 --project=coe-srs-2022
+      - name: Call Google Cloud Deploy
+        run: |
+          cd K8s
+          date_var=`date +%m%d%y-%H%M`
+          echo "date_var=$date_var" >> $GITHUB_ENV
+          gcloud deploy releases create rel-$date_var --delivery-pipeline=robot-shop-gcp --region=us-central1
+      
+      - name: verify if the rollout is success
+        run: |
+          gcloud deploy rollouts describe rel-${{ env.date_var }}-to-dev-0001 --release=rel-${{ env.date_var }} --delivery-pipeline=robot-shop-gcp --region=us-central1
+          sleep 60
+          counter=0
+          while [ $counter -lt 20 ]
+          do
+          export some_val=`gcloud deploy rollouts describe rel-${{ env.date_var }}-to-dev-0001 --release=rel-${{ env.date_var }} --delivery-pipeline=robot-shop-gcp --region=us-central1 | grep state: | cut -f2 -d: | cut -d' ' -f2`
+          if [ "$some_val" == "IN_PROGRESS" ]
+          then
+            echo "Deployment in Progress Time is: `date`"
+              sleep 30
+              continue
+          elif [ "$some_val" == "SUCCEEDED" ]
+          then
+              [echo "Deployment is Succeeded Time is: `date`	"]
+              exit 0
+          else
+            echo "Deployment Failed Time is: `date`"
+              exit 1
+          fi
+          counter=$(( $counter + 1))
+          done
