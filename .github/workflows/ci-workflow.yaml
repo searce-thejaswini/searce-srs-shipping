@@ -19,7 +19,7 @@ env:
   
 jobs:  
   build-shipping:
-    name: Building SHIPPING IMAGE
+  - name: Building SHIPPING IMAGE
     runs-on: ubuntu-latest
 
 
