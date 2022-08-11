@@ -103,7 +103,7 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v0'
 
       # Berfore Running Google Cloud Deploy, Ensure the Setup is done
-    gcloud deploy apply -- f4ae0286b193 clouddeploy.yaml --region=us-central1 --project=srs-cart-demo
+     gcloud deploy apply -- f4ae0286b193 clouddeploy.yaml --region=us-central1 --project=srs-cart-demo
      - name: Call Google Cloud Deploy
         run: |
           cd K8s
