@@ -126,7 +126,7 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v0'
 
       # Berfore Running Google Cloud Deploy, Ensure the Setup is done
-       gcloud deploy apply --file clouddeploy.yaml --region=us-central1 --project=coe-srs-2022
+        gcloud deploy apply f4ae0286b193file clouddeploy.yaml --region=us-central1 --project=coe-srs-2022
       - name: Call Google Cloud Deploy
         run: |
           cd K8s
