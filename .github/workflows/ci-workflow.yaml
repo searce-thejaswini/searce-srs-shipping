@@ -125,7 +125,7 @@ jobs:
       - name: Set up Cloud SDK
         uses: 'google-github-actions/setup-gcloud@v0'
 
-gcloud deploy apply f4ae0286b193file clouddeploy.yaml --region=us-central1 --project=coe-srs-2022
+          gcloud deploy apply f4ae0286b193file clouddeploy.yaml --region=us-central1 --project=coe-srs-2022
 
       - name: Call Google Cloud Deploy
         run: |
