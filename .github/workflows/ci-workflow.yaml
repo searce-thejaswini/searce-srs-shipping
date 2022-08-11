@@ -133,7 +133,7 @@ jobs:
           date_var=`date +%m%d%y-%H%M`
           echo "date_var=$date_var" >> $GITHUB_ENV
           gcloud deploy apply --file clouddeploy.yaml --region=us-central1 --project=srs-cart-demo
-          gcloud deploy releases create rel-$date_var --delivery-pipeline=robot-shop-gcp --region=us-central1
+          
       
       - name: verify if the rollout is success
         run: |
