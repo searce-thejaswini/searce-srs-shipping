@@ -4,13 +4,11 @@ on:
     branches-ignore:
       - dev-branch-01
     paths-ignore:
-      - 'DCOS/**'
       - 'K8s/**'
   pull_request:
        
   workflow_dispatch:
     paths-ignore:
-      - 'DCOS/**'
       - 'K8s/**'
 
 env:
@@ -25,19 +23,8 @@ jobs:
     name: Building SHIPPING IMAGE
     runs-on: ubuntu-latest
     permissions:
-     actions: write
-     checks: write
-     contents: write
-     deployments: write
-     id-token: write
-     issues: write
-     discussions: write
-     packages: write
-     pages: write
      pull-requests: write
-     repository-projects: write
-     security-events: write
-     statuses: write
+     
       
 
     steps:
@@ -71,8 +58,8 @@ jobs:
           credentials_json: "${{ secrets.GOOGLE_CREDENTIALS_P }}"
           # Below is a method of using Managed Identity Pools in GCP"
           #workload_identity_provider: "${{ secrets.workload_identity_provider }}"
-          #service_account: 'triangulum-ctv-sa@triangulum-ctv-349103.iam.gserviceaccount.com'
-          #project_id: triangulum-ctv
+          #service_account: 
+          #project_id: 
           #token_format: 'access_token'
       
       - name: Set up Cloud SDK
@@ -91,11 +78,7 @@ jobs:
           org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=$SONAR_PROJECT_KEY \
             
-      - name: Publish Wiremock Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        if: always()
-        with:
-          files: "target/surefire-reports/junitreports/*.xml"
+  
        
       - name: Build-and-push-to-GAR
         run: |
