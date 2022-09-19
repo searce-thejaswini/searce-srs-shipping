@@ -12,7 +12,7 @@ on:
       - 'K8s/**'
 
 env:
-  GAR_INFO: us-central1-docker.pkg.dev/srs-cart-demo/srs-ship-demo
+  GAR_INFO: us-central1-docker.pkg.dev/srs-cart-demo/srs-shipping-demo
   APP_NAME: rs-shipping
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_NEW }}
   SONAR_PROJECT_KEY: 'coe-srs-shipping'
