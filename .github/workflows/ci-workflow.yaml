@@ -6,13 +6,9 @@ on:
     paths-ignore:
       - 'K8s/**'
   pull_request:
-       
-  workflow_dispatch:
-    paths-ignore:
-      - 'K8s/**'
-
+  
 env:
-  GAR_INFO: us-central1-docker.pkg.dev/tribal-thought-363101/srs-shipping-demo
+  GAR_INFO: us-central1-docker.pkg.dev/srs-d-363101/shipping-demo
   APP_NAME: rs-shipping
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_NEW }}
   SONAR_PROJECT_KEY: 'coe-srs-shipping'
@@ -116,30 +112,8 @@ jobs:
           cd K8s
           date_var=`date +%m%d%y-%H%M`
           echo "date_var=$date_var" >> $GITHUB_ENV
-          gcloud deploy apply --file clouddeploy.yaml --region=us-central1 --project=tribal-thought-363101
+          gcloud deploy apply --file clouddeploy.yaml --region=us-central1 --project=srs-d-363101
           gcloud deploy releases create rel-$date_var --delivery-pipeline=robot-shop-gcp --region=us-central1
           
       
-      - name: verify if the rollout is success
-        run: |
-          gcloud deploy rollouts describe rel-${{ env.date_var }}-to-dev-0001 --release=rel-${{ env.date_var }} --delivery-pipeline=robot-shop-gcp --region=us-central1
-          sleep 60
-          counter=0
-          while [ $counter -lt 20 ]
-          do
-          export some_val=`gcloud deploy rollouts describe rel-${{ env.date_var }}-to-dev-0001 --release=rel-${{ env.date_var }} --delivery-pipeline=robot-shop-gcp --region=us-central1 | grep state: | cut -f2 -d: | cut -d' ' -f2`
-          if [ "$some_val" == "IN_PROGRESS" ]
-          then
-            echo "Deployment in Progress Time is: `date`"
-              sleep 30
-              continue
-          elif [ "$some_val" == "SUCCEEDED" ]
-          then
-              [echo "Deployment is Succeeded Time is: `date`	"]
-              exit 0
-          else
-            echo "Deployment Failed Time is: `date`"
-              exit 1
-          fi
-          counter=$(( $counter + 1))
-          done
+      
