@@ -119,5 +119,7 @@ jobs:
           gcloud deploy apply --file clouddeploy.yaml --region=us-central1 --project=tribal-thought-363101
           gcloud deploy releases create rel-$date_var --delivery-pipeline=robot-shop-gcp --region=us-central1
           
+          #gcloud deploy
+          
       
       
