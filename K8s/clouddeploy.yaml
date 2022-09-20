@@ -17,7 +17,7 @@ metadata:
  name: dev
 description: development namespace
 gke:
- cluster: projects/srs-cart-demo/locations/us-central1-c/clusters/srs-cluster
+ cluster: projects/tribal-thought-363101/locations/us-central1-c/clusters/demo-cluster-1
 
 ---
 
@@ -28,4 +28,5 @@ metadata:
 description: production cluster
 requireApproval: true
 gke:
- cluster: projects/srs-cart-demo/locations/us-central1-c/clusters/srs-cluster
+ cluster: projects/tribal-thought-363101/locations/us-central1-c/clusters/demo-cluster-1
+
