@@ -111,7 +111,7 @@ jobs:
 
     
 
-      - name: Call Google Cloud Deploy
+      - name: Call Google Cloud deploy
         run: |
           cd K8s
           date_var=`date +%m%d%y-%H%M`
@@ -143,4 +143,3 @@ jobs:
           fi
           counter=$(( $counter + 1))
           done
-#CI-CD Workflow
