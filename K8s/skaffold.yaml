@@ -27,28 +27,3 @@ profiles:
             - helm/values.yaml
           imageStrategy:
             helm: {}
- 
-
-# build:
-#     artifacts:
-#       - image: us-central1-docker.pkg.dev/triangulum-ctv-349103/telus-robot-shop
-# deploy:
-#   helm:
-#     releases:
-#     - name: dev
-#       chartPath: helm
-#       namespace: robot-shop-dev
-#       recreatePods: false
-#       valuesFiles:
-#         - helm/values.yaml
-#       imageStrategy:
-#         helm: {}
-#     - name: prod
-#       chartPath: helm
-#       namespace: robot-shop-prod
-#       recreatePods: false
-#       valuesFiles:
-#         - helm/values.yaml
-#       imageStrategy:
-#         helm: {}
-  
