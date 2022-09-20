@@ -8,7 +8,7 @@ profiles:
       helm:
         releases:
         - name: dev
-          namespace: srs-dev
+          namespace: dev-ns
           chartPath: helm
           recreatePods: false
           valuesFiles:
@@ -20,7 +20,7 @@ profiles:
       helm:
         releases:
         - name: prod
-          namespace: srs-prod
+          namespace: prod-ns
           chartPath: helm
           recreatePods: false
           valuesFiles:
