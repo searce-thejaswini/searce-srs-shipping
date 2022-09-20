@@ -12,7 +12,7 @@ on:
       - 'K8s/**'
 
 env:
-  GAR_INFO: us-central1-docker.pkg.dev/srs-d-363101/shipping-demo
+  GAR_INFO: us-central1-docker.pkg.dev/tribal-thought-363101/srs-shipping-demo
   APP_NAME: rs-shipping
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_NEW }}
   SONAR_PROJECT_KEY: 'coe-srs-shipping'
@@ -108,14 +108,14 @@ jobs:
       - name: Set up Cloud SDK
         uses: 'google-github-actions/setup-gcloud@v0'
 
-      # Berfore Running Google Cloud Deploy, Ensure the Setup is done
+    
 
       - name: Call Google Cloud Deploy
         run: |
           cd K8s
           date_var=`date +%m%d%y-%H%M`
           echo "date_var=$date_var" >> $GITHUB_ENV
-          gcloud deploy apply --file clouddeploy.yaml --region=us-central1 --project=srs-cart-demo
+          gcloud deploy apply --file clouddeploy.yaml --region=us-central1 --project=tribal-thought-363101
           gcloud deploy releases create rel-$date_var --delivery-pipeline=robot-shop-gcp --region=us-central1
           
       
